@@ -1,90 +1,27 @@
-<?php 
-session_start();
+<?php session_start();
 error_reporting(0);
 include('includes/config.php');
-if(isset($_POST['submit'])){
-		if(!empty($_SESSION['cart'])){
-		foreach($_POST['quantity'] as $key => $val){
-			if($val==0){
-				unset($_SESSION['cart'][$key]);
-			}else{
-				$_SESSION['cart'][$key]['quantity']=$val;
-
-			}
-		}
-			echo "<script>alert('Your Cart hasbeen Updated');</script>";
-		}
-	}
-// Code for Remove a Product from Cart
-if(isset($_POST['remove_code']))
-	{
-
-if(!empty($_SESSION['cart'])){
-		foreach($_POST['remove_code'] as $key){
-			
-				unset($_SESSION['cart'][$key]);
-		}
-			echo "<script>alert('Your Cart has been Updated');</script>";
-	}
-}
-// code for insert product in order table
-
-
-if(isset($_POST['ordersubmit'])) 
-{
-	
-if(strlen($_SESSION['login'])==0)
-    {   
-header('location:login.php');
-}
-else{
-
-	$quantity=$_POST['quantity'];
-	$pdd=$_SESSION['pid'];
-	$value=array_combine($pdd,$quantity);
-
-
-		foreach($value as $qty=> $val34){
-
-
-
-mysqli_query($con,"insert into orders(userId,productId,quantity) values('".$_SESSION['id']."','$qty','$val34')");
-header('location:payment-method.php');
-}
-}
-}
-
-// code for billing address updation
-	if(isset($_POST['update']))
-	{
-		$baddress=$_POST['billingaddress'];
-		$bstate=$_POST['bilingstate'];
-		$bcity=$_POST['billingcity'];
-		$bpincode=$_POST['billingpincode'];
-		$query=mysqli_query($con,"update users set billingAddress='$baddress',billingState='$bstate',billingCity='$bcity',billingPincode='$bpincode' where id='".$_SESSION['id']."'");
-		if($query)
-		{
-echo "<script>alert('Billing Address has been updated');</script>";
+if(isset($_GET['action']) && $_GET['action']=="add"){
+	$id=intval($_GET['id']);
+	if(isset($_SESSION['cart'][$id])){
+		$_SESSION['cart'][$id]['quantity']++;
+	}else{
+		$sql_p="SELECT * FROM products WHERE id={$id}";
+		$query_p=mysqli_query($con,$sql_p);
+		if(mysqli_num_rows($query_p)!=0){
+			$row_p=mysqli_fetch_array($query_p);
+			$_SESSION['cart'][$row_p['id']]=array("quantity" => 1, "price" => $row_p['productPrice']);
+		
+		}else{
+			$message="Product ID is invalid";
 		}
 	}
+		echo "<script>alert('Product has been added to the cart')</script>";
+		echo "<script type='text/javascript'> document.location ='my-cart.php'; </script>";
+}
 
-
-// code for Shipping address updation
-	if(isset($_POST['shipupdate']))
-	{
-		$saddress=$_POST['shippingaddress'];
-		$sstate=$_POST['shippingstate'];
-		$scity=$_POST['shippingcity'];
-		$spincode=$_POST['shippingpincode'];
-		$query=mysqli_query($con,"update users set shippingAddress='$saddress',shippingState='$sstate',shippingCity='$scity',shippingPincode='$spincode' where id='".$_SESSION['id']."'");
-		if($query)
-		{
-echo "<script>alert('Shipping Address has been updated');</script>";
-		}
-	}
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -97,8 +34,15 @@ echo "<script>alert('Shipping Address has been updated');</script>";
 	    <meta name="keywords" content="MediaCenter, Template, eCommerce">
 	    <meta name="robots" content="all">
 
-	    <title>My Cart</title>
+	    <title>Shoppoint Home Page</title>
+
+	    <!-- Bootstrap Core CSS -->
 	    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+	    
+	    <!-- Customizable CSS -->
+		 <!-- Customizable CSS -->
+        <link rel="stylesheet" href="media-query.css">
+
 	    <link rel="stylesheet" href="assets/css/main.css">
 	    <link rel="stylesheet" href="assets/css/red.css">
 	    <link rel="stylesheet" href="assets/css/owl.carousel.css">
@@ -117,23 +61,11 @@ echo "<script>alert('Shipping Address has been updated');</script>";
 		<link href="assets/css/red.css" rel="alternate stylesheet" title="Red color">
 		<link href="assets/css/orange.css" rel="alternate stylesheet" title="Orange color">
 		<link href="assets/css/dark-green.css" rel="alternate stylesheet" title="Darkgreen color">
-		<!-- Demo Purpose Only. Should be removed in production : END -->
-
-		
-		<!-- Icons/Glyphs -->
 		<link rel="stylesheet" href="assets/css/font-awesome.min.css">
-
-        <!-- Fonts --> 
 		<link href='http://fonts.googleapis.com/css?family=Roboto:300,400,500,700' rel='stylesheet' type='text/css'>
 		
 		<!-- Favicon -->
 		<link rel="shortcut icon" href="assets/images/favicon.ico">
-
-		<!-- HTML5 elements and media queries Support for IE8 : HTML5 shim and Respond.js -->
-		<!--[if lt IE 9]>
-			<script src="assets/js/html5shiv.js"></script>
-			<script src="assets/js/respond.min.js"></script>
-		<![endif]-->
 
 	</head>
     <body class="cnt-home">
@@ -146,265 +78,176 @@ echo "<script>alert('Shipping Address has been updated');</script>";
 <?php include('includes/main-header.php');?>
 <?php include('includes/menu-bar.php');?>
 </header>
+
 <!-- ============================================== HEADER : END ============================================== -->
-<div class="breadcrumb">
+<div class="body-content outer-top-xs" id="top-banner-and-menu">
 	<div class="container">
-		<div class="breadcrumb-inner">
-			<ul class="list-inline list-unstyled">
-				<li><a href="#">Home</a></li>
-				<li class='active'>Shopping Cart</li>
-			</ul>
-		</div><!-- /.breadcrumb-inner -->
-	</div><!-- /.container -->
-</div><!-- /.breadcrumb -->
-
-<div class="body-content outer-top-xs">
-	<div class="container">
-		<div class="row inner-bottom-sm">
-			<div class="shopping-cart">
-				<div class="col-md-12 col-sm-12 shopping-cart-table ">
-	<div class="table-responsive">
-<form name="cart" method="post">	
-<?php
-if(!empty($_SESSION['cart'])){
-	?>
-		<table class="table table-bordered">
-			<thead>
-				<tr>
-					<th class="cart-romove item">Remove</th>
-					<th class="cart-description item">Image</th>
-					<th class="cart-product-name item">Product Name</th>
+		<div class="furniture-container homepage-container">
+		<div class="row">
+		
+			<div class="col-xs-12 col-sm-12 col-md-3 sidebar">
+				<!-- ================================== TOP NAVIGATION ================================== -->
+	<?php include('includes/side-menu.php');?>
+<!-- ================================== TOP NAVIGATION : END ================================== -->
+			</div><!-- /.sidemenu-holder -->	
 			
-					<th class="cart-qty item">Quantity</th>
-					<th class="cart-sub-total item">Price Per unit</th>
-					<th class="cart-sub-total item">Shipping Charge</th>
-					<th class="cart-total last-item">Grandtotal</th>
-				</tr>
-			</thead><!-- /thead -->
-			<tfoot>
-				<tr>
-					<td colspan="7">
-						<div class="shopping-cart-btn">
-							<span class="">
-								<a href="index.php" class="btn btn-upper btn-primary outer-left-xs">Continue Shopping</a>
-								<input type="submit" name="submit" value="Update shopping cart" class="btn btn-upper btn-primary pull-right outer-right-xs">
-							</span>
-						</div><!-- /.shopping-cart-btn -->
-					</td>
-				</tr>
-			</tfoot>
-			<tbody>
- <?php
- $pdtid=array();
-    $sql = "SELECT * FROM products WHERE id IN(";
-			foreach($_SESSION['cart'] as $id => $value){
-			$sql .=$id. ",";
-			}
-			$sql=substr($sql,0,-1) . ") ORDER BY id ASC";
-			$query = mysqli_query($con,$sql);
-			$totalprice=0;
-			$totalqunty=0;
-			if(!empty($query)){
-			while($row = mysqli_fetch_array($query)){
-				$quantity=$_SESSION['cart'][$row['id']]['quantity'];
-				$subtotal= $_SESSION['cart'][$row['id']]['quantity']*$row['productPrice']+$row['shippingCharge'];
-				$totalprice += $subtotal;
-				$_SESSION['qnty']=$totalqunty+=$quantity;
-
-				array_push($pdtid,$row['id']);
-//print_r($_SESSION['pid'])=$pdtid;exit;
-	?>
-
-				<tr>
-					<td class="romove-item"><input type="checkbox" name="remove_code[]" value="<?php echo htmlentities($row['id']);?>" /></td>
-					<td class="cart-image">
-						<a class="entry-thumbnail" href="detail.html">
-						    <img src="admin/productimages/<?php echo $row['id'];?>/<?php echo $row['productImage1'];?>" alt="" width="114" height="146">
-						</a>
-					</td>
-					<td class="cart-product-name-info">
-						<h4 class='cart-product-description'><a href="product-details.php?pid=<?php echo htmlentities($pd=$row['id']);?>" ><?php echo $row['productName'];
-
-$_SESSION['sid']=$pd;
-						 ?></a></h4>
-						<div class="row">
-							<div class="col-sm-4">
-								<div class="rating rateit-small"></div>
-							</div>
-							<div class="col-sm-8">
-<?php $rt=mysqli_query($con,"select * from productreviews where productId='$pd'");
-$num=mysqli_num_rows($rt);
-{
-?>
-								<div class="reviews">
-									( <?php echo htmlentities($num);?> Reviews )
-								</div>
-								<?php } ?>
-							</div>
-						</div><!-- /.row -->
-						
-					</td>
-					<td class="cart-product-quantity">
-						<div class="quant-input">
-				                <div class="arrows">
-				                  <div class="arrow plus gradient"><span class="ir"><i class="icon fa fa-sort-asc"></i></span></div>
-				                  <div class="arrow minus gradient"><span class="ir"><i class="icon fa fa-sort-desc"></i></span></div>
-				                </div>
-				             <input type="text" value="<?php echo $_SESSION['cart'][$row['id']]['quantity']; ?>" name="quantity[<?php echo $row['id']; ?>]">
-				             
-			              </div>
-		            </td>
-					<td class="cart-product-sub-total"><span class="cart-sub-total-price"><?php echo "Rs"." ".$row['productPrice']; ?>.00</span></td>
-<td class="cart-product-sub-total"><span class="cart-sub-total-price"><?php echo "Rs"." ".$row['shippingCharge']; ?>.00</span></td>
-
-					<td class="cart-product-grand-total"><span class="cart-grand-total-price"><?php echo ($_SESSION['cart'][$row['id']]['quantity']*$row['productPrice']+$row['shippingCharge']); ?>.00</span></td>
-				</tr>
-
-				<?php } }
-$_SESSION['pid']=$pdtid;
-				?>
-				
-			</tbody><!-- /tbody -->
-		</table><!-- /table -->
-		
-	</div>
-</div><!-- /.shopping-cart-table -->			<div class="col-md-4 col-sm-12 estimate-ship-tax">
-	<table class="table table-bordered">
-		<thead>
-			<tr>
-				<th>
-					<span class="estimate-title">Shipping Address</span>
-				</th>
-			</tr>
-		</thead>
-		<tbody>
-				<tr>
-					<td>
-						<div class="form-group">
-<?php
-$query=mysqli_query($con,"select * from users where id='".$_SESSION['id']."'");
-while($row=mysqli_fetch_array($query))
-{
-?>
-
-<div class="form-group">
-					    <label class="info-title" for="Billing Address">Billing Address<span>*</span></label>
-					    <textarea class="form-control unicase-form-control text-input"  name="billingaddress" required="required"><?php echo $row['billingAddress'];?></textarea>
-					  </div>
-
-
-
-						<div class="form-group">
-					    <label class="info-title" for="Billing State ">Billing State  <span>*</span></label>
-			 <input type="text" class="form-control unicase-form-control text-input" id="bilingstate" name="bilingstate" value="<?php echo $row['billingState'];?>" required>
-					  </div>
-					  <div class="form-group">
-					    <label class="info-title" for="Billing City">Billing City <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="billingcity" name="billingcity" required="required" value="<?php echo $row['billingCity'];?>" >
-					  </div>
- <div class="form-group">
-					    <label class="info-title" for="Billing Pincode">Billing Pincode <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="billingpincode" name="billingpincode" required="required" value="<?php echo $row['billingPincode'];?>" >
-					  </div>
-
-
-					  <button type="submit" name="update" class="btn-upper btn btn-primary checkout-page-button">Update</button>
+			<div class="col-xs-12 col-sm-12 col-md-9 homebanner-holder">
+				<!-- ========================================== SECTION – HERO ========================================= -->
 			
-					<?php } ?>
-		
-						</div>
-					
-					</td>
-				</tr>
-		</tbody><!-- /tbody -->
-	</table><!-- /table -->
+<div id="hero" class="homepage-slider3">
+	<div id="owl-main" class="owl-carousel owl-inner-nav owl-ui-sm">
+		<div class="full-width-slider">	
+			<div class="item" style="background-image: url(assets/images/sliders/slider1.png);">
+				<!-- /.container-fluid -->
+			</div><!-- /.item -->
+		</div><!-- /.full-width-slider -->
+	    
+	    <div class="full-width-slider">
+			<div class="item full-width-slider" style="background-image: url(assets/images/sliders/slider2.png);">
+			</div><!-- /.item -->
+		</div><!-- /.full-width-slider -->
+
+	</div><!-- /.owl-carousel -->
 </div>
-
-<div class="col-md-4 col-sm-12 estimate-ship-tax">
-	<table class="table table-bordered">
-		<thead>
-			<tr>
-				<th>
-					<span class="estimate-title">Billing Address</span>
-				</th>
-			</tr>
-		</thead>
-		<tbody>
-				<tr>
-					<td>
-						<div class="form-group">
-		<?php
-$query=mysqli_query($con,"select * from users where id='".$_SESSION['id']."'");
-while($row=mysqli_fetch_array($query))
-{
-?>
-
-<div class="form-group">
-					    <label class="info-title" for="Shipping Address">Shipping Address<span>*</span></label>
-					    <textarea class="form-control unicase-form-control text-input"  name="shippingaddress" required="required"><?php echo $row['shippingAddress'];?></textarea>
-					  </div>
-
-
-
-						<div class="form-group">
-					    <label class="info-title" for="Billing State ">Shipping State  <span>*</span></label>
-			 <input type="text" class="form-control unicase-form-control text-input" id="shippingstate" name="shippingstate" value="<?php echo $row['shippingState'];?>" required>
-					  </div>
-					  <div class="form-group">
-					    <label class="info-title" for="Billing City">Shipping City <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="shippingcity" name="shippingcity" required="required" value="<?php echo $row['shippingCity'];?>" >
-					  </div>
- <div class="form-group">
-					    <label class="info-title" for="Billing Pincode">Shipping Pincode <span>*</span></label>
-					    <input type="text" class="form-control unicase-form-control text-input" id="shippingpincode" name="shippingpincode" required="required" value="<?php echo $row['shippingPincode'];?>" >
-					  </div>
-
-
-					  <button type="submit" name="shipupdate" class="btn-upper btn btn-primary checkout-page-button">Update</button>
-					<?php } ?>
-
-		
+			
+<!-- ========================================= SECTION – HERO : END ========================================= -->	
+				<!-- ============================================== INFO BOXES ============================================== -->
+<div class="info-boxes wow fadeInUp">
+	<div class="info-boxes-inner">
+		<div class="row">
+			<div class="col-md-6 col-sm-4 col-lg-4">
+				<div class="info-box">
+					<div class="row">
+						<div class="col-xs-2">
+						     <i class="icon fa fa-dollar"></i>
 						</div>
-					
-					</td>
-				</tr>
-		</tbody><!-- /tbody -->
-	</table><!-- /table -->
-</div>
-<div class="col-md-4 col-sm-12 cart-shopping-total">
-	<table class="table table-bordered">
-		<thead>
-			<tr>
-				<th>
-					
-					<div class="cart-grand-total">
-						Grand Total<span class="inner-left-md"><?php echo $_SESSION['tp']="$totalprice". ".00"; ?></span>
+						<div class="col-xs-10">
+							<h4 class="info-box-heading green">money back</h4>
+						</div>
+					</div>	
+					<h6 class="text">30 Day Money Back Guarantee.</h6>
+				</div>
+			</div><!-- .col -->
+
+			<div class="hidden-md col-sm-4 col-lg-4">
+				<div class="info-box">
+					<div class="row">
+						<div class="col-xs-2">
+							<i class="icon fa fa-truck"></i>
+						</div>
+						<div class="col-xs-10">
+							<h4 class="info-box-heading orange">free shipping</h4>
+						</div>
 					</div>
-				</th>
-			</tr>
-		</thead><!-- /thead -->
-		<tbody>
-				<tr>
-					<td>
-						<div class="cart-checkout-btn pull-right">
-							<button type="submit" name="ordersubmit" class="btn btn-primary">PROCCED TO CHEKOUT</button>
-						
+					<h6 class="text">free ship-on oder over Rs. 600.00</h6>	
+				</div>
+			</div><!-- .col -->
+
+			<div class="col-md-6 col-sm-4 col-lg-4">
+				<div class="info-box">
+					<div class="row">
+						<div class="col-xs-2">
+							<i class="icon fa fa-gift"></i>
 						</div>
-					</td>
-				</tr>
-		</tbody><!-- /tbody -->
-	</table>
-	<?php } else {
-echo "Your shopping Cart is empty";
-		}?>
-</div>			</div>
-		</div> 
-		</form>
-<?php echo include('includes/brands-slider.php');?>
+						<div class="col-xs-10">
+							<h4 class="info-box-heading red">Special Sale</h4>
+						</div>
+					</div>
+					<h6 class="text">All items-sale up to 20% off </h6>	
+				</div>
+			</div><!-- .col -->
+		</div><!-- /.row -->
+	</div><!-- /.info-boxes-inner -->
+	
+</div><!-- /.info-boxes -->
+<!-- ============================================== INFO BOXES : END ============================================== -->		
+			</div><!-- /.homebanner-holder -->
+			
+		</div><!-- /.row -->
+
+		<!-- ============================================== SCROLL TABS ============================================== -->
+		<div  >
+			<div class="more-info-tab clearfix">
+			   <h3 class="new-product-title pull-left">All Products</h3>
+		<!-- 		<ul class="nav nav-tabs nav-tab-line pull-right" id="new-products-1">
+					<li class="active"><a href="#all" data-toggle="tab">All</a></li>
+					<li><a href="#books" data-toggle="tab">Books</a></li>
+					<li><a href="#furniture" data-toggle="tab">Furniture</a></li>
+				</ul> -->
+			</div>
+
+			<div class="tab-content outer-top-xs">
+				<div class="tab-pane in active" id="all">			
+					<div class="product-slider">
+						<div class="owl-carousel home-owl-carousel custom-carousel owl-theme" >
+<?php
+$ret=mysqli_query($con,"select * from products");
+while ($row=mysqli_fetch_array($ret)) 
+{
+	# code...
+
+
+?>
+
+						    	
+		<div class="item">
+			<div class="products">
+				
+	<div class="product">		
+		<div class="product-image">
+			<div class="image">
+				<a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>">
+				<img  src="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>" data-echo="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>"  width="180" height="300" alt=""></a>
+			</div><!-- /.image -->			
+
+			                        		   
+		</div><!-- /.product-image -->
+			
+		
+		<div class="product-info text-left">
+			<h3 class="name"><a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>"><?php echo htmlentities($row['productName']);?></a></h3>
+			<div class="rating rateit-small"></div>
+			<div class="description"></div>
+
+			<div class="product-price">	
+				<span class="price">
+					Rs.<?php echo htmlentities($row['productPrice']);?>			</span>
+										     <span class="price-before-discount">Rs.<?php echo htmlentities($row['productPriceBeforeDiscount']);?>	</span>
+									
+			</div><!-- /.product-price -->
+			
+		</div><!-- /.product-info -->
+		<?php if($row['productAvailability']=='In Stock'){?>
+					<div class="action"><a href="index.php?page=product&action=add&id=<?php echo $row['id']; ?>" class="lnk btn btn-info">Add to Cart</a></div>
+				<?php } else {?>
+						<div class="action" style="color:red">Out of Stock</div>
+					<?php } ?>
+			</div><!-- /.product -->
+      
+			</div><!-- /.products -->
+		</div><!-- /.item -->
+	<?php } ?>
+
+			</div><!-- /.home-owl-carousel -->
+					</div><!-- /.product-slider -->
+				</div>
+
+
+
+			</div>
+		</div>
+		    
+
+         <!-- ============================================== TABS ============================================== -->
+	
+		
+<hr />
+
+<?php include('includes/brands-slider.php');?>
 </div>
 </div>
 <?php include('includes/footer.php');?>
-
+	
 	<script src="assets/js/jquery-1.11.1.min.js"></script>
 	
 	<script src="assets/js/bootstrap.min.js"></script>
@@ -439,5 +282,8 @@ echo "Your shopping Cart is empty";
 		});
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
+
+	
+
 </body>
 </html>
