@@ -1,0 +1,132 @@
+/* Base styles (for larger screens) */
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Mobile Devices */
+@media (max-width: 767px) {
+    /* Modify layout for small screens (mobile phones) */
+    .header-style-1 {
+        padding: 10px;
+    }
+
+    .sidebar {
+        display: none; /* Hide sidebar on mobile */
+    }
+
+    .homebanner-holder {
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .info-boxes .col-md-6,
+    .info-boxes .col-sm-4,
+    .info-boxes .col-lg-4 {
+        margin-bottom: 20px;
+    }
+
+    .product {
+        width: 100%;
+        margin: 10px 0;
+    }
+
+    .product-image img {
+        max-width: 100%;
+    }
+
+    .product-price {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .action {
+        text-align: center;
+    }
+
+    /* Adjust carousel for smaller screens */
+    .owl-carousel {
+        display: block;
+    }
+}
+
+/* Tablets */
+@media (min-width: 768px) and (max-width: 991px) {
+    /* Modify layout for tablets */
+    .header-style-1 {
+        padding: 15px;
+    }
+
+    .product-info {
+        font-size: 14px;
+    }
+
+    .product-image img {
+        max-width: 100%;
+    }
+
+    .product-price {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* Modify layout for carousels and grids */
+    .homebanner-holder {
+        margin-bottom: 20px;
+    }
+
+    .product {
+        width: 48%;
+        margin: 10px 1%;
+    }
+
+    /* Update the price style on tablets */
+    .product-price {
+        font-size: 16px;
+    }
+}
+
+/* Large Devices */
+@media (min-width: 992px) and (max-width: 1199px) {
+    /* Modify layout for medium screens (desktops) */
+    .product {
+        width: 30%;
+        margin: 20px;
+    }
+
+    .info-boxes .col-md-6,
+    .info-boxes .col-sm-4,
+    .info-boxes .col-lg-4 {
+        margin-bottom: 30px;
+    }
+
+    .product-price {
+        font-size: 18px;
+    }
+
+    /* Adjust the carousel image size */
+    .owl-carousel .item {
+        max-width: 100%;
+    }
+}
+
+/* Extra Large Devices (Desktops) */
+@media (min-width: 1200px) {
+    /* Modify layout for large screens */
+    .header-style-1 {
+        padding: 20px;
+    }
+
+    .product {
+        width: 22%;
+        margin: 20px;
+    }
+
+    .product-info {
+        font-size: 16px;
+    }
+
+    /* Adjust price sizes for large screens */
+    .product-price {
+        font-size: 20px;
+    }
+}
